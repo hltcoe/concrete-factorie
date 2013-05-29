@@ -1,5 +1,9 @@
-.idea
-.DS_Store
-
+*~
+*.diff
 *.class
-*.log
+*#
+.classpath
+.project
+.settings
+
+target
