@@ -1,4 +1,4 @@
-package edu.jhu.hlt.concrete
+package edu.jhu.hlt.concrete.converters.factorie
 
 import java.util.UUID
 import edu.jhu.hlt.concrete.Concrete
@@ -11,7 +11,7 @@ import cc.factorie.app.nlp.parse.ParseTree
  * This object contains implicit conversions between Concrete Communications
  * and FactorIE Documents.
  */
-object ConcreteImplicits {
+object ImplicitConversions {
 
   private def getUUID:Concrete.UUID = {
     val uuid = UUID.randomUUID

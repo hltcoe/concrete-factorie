@@ -1,4 +1,4 @@
-package edu.jhu.hlt.concrete
+package edu.jhu.hlt.concrete.converters.factorie
 
 import java.util.logging.Logger
 import edu.jhu.hlt.concrete.io.ProtocolBufferReader
