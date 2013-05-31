@@ -1,12 +1,13 @@
 package edu.jhu.hlt.concrete
 
 import java.util.UUID
-import edu.jhu.concrete.Concrete
+import edu.jhu.hlt.concrete.Concrete
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
 import cc.factorie.app.nlp.parse.ParseTree
 
 /**
+ * @author John Sullivan
  * This object contains implicit conversions between Concrete Communications
  * and FactorIE Documents.
  */
@@ -66,6 +67,7 @@ object ConcreteImplicits {
     .setTokenization(uuid)
     .build
 
+  //TODO Convert to Dependency Parse
   private def makeConstituent(id:Int, tree:ParseTree):Concrete.Parse.Constituent = {
     val con = Concrete.Parse.Constituent.newBuilder
       .setId(id)
@@ -108,4 +110,9 @@ object ConcreteImplicits {
   }
     .build
 
+  implicit def Document2MyDocument(doc:Document) = new MyDocument(doc)
+
+  class MyDocument(doc:Document) {
+    def asCommunication:Concrete.Communication = Document2Communication(doc)
+  }
 }

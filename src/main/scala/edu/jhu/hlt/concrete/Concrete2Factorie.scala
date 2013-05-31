@@ -1,15 +1,14 @@
 package edu.jhu.hlt.concrete
 
 import java.util.logging.Logger
-import edu.jhu.concrete.io.ProtocolBufferReader
-import edu.jhu.concrete.Concrete.Communication
+import edu.jhu.hlt.concrete.io.ProtocolBufferReader
+import edu.jhu.hlt.concrete.Concrete.Communication
 import java.io.File
 import java.io.FileInputStream
 import cc.factorie._
 import cc.factorie.app.nlp._
 import cc.factorie.app.nlp.pos._
 import scala.collection.mutable.ArrayBuffer
-import edu.jhu.concrete.Concrete.Communication
 import scala.collection.JavaConversions._
 
 /**
@@ -33,7 +32,7 @@ object Concrete2Factorie {
 						if(sent.hasTextSpan()){
 							val sentStart = sent.getTextSpan().getStart()
 							val sentEnd = sent.getTextSpan().getEnd()
-							val sentence = 
+							val sentence =
 								new Sentence(document, sentStart, sentEnd-sentStart+1)
 							
 							sent.getTokenizationList().foreach(tokenization=>{
