@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.jhu.hlt.concrete</groupId>
+  <groupId>edu.jhu.hlt.concrete.converters.factorie</groupId>
   <artifactId>concrete_factorie</artifactId>
   <version>0.1-SNAPSHOT</version>
   <inceptionYear>2013</inceptionYear>
@@ -48,25 +48,24 @@
       <scope>test</scope>
     </dependency>
       <dependency>
-          <groupId>edu.jhu.concrete</groupId>
+          <groupId>edu.jhu.hlt.concrete</groupId>
           <artifactId>concrete-protobufs</artifactId>
-          <version>1.0.2-SNAPSHOT</version>
+          <version>1.0.3</version>
       </dependency>
       <dependency>
-          <groupId>edu.jhu.concrete</groupId>
+          <groupId>edu.jhu.hlt.concrete</groupId>
           <artifactId>concrete-java</artifactId>
-          <version>1.0.0</version>
+          <version>1.0.1</version>
       </dependency>
       <dependency>
           <groupId>cc.factorie</groupId>
           <artifactId>factorie</artifactId>
-          <version>1.0.0-M3</version>
+          <version>1.0.0-M4</version>
       </dependency>
   </dependencies>
 
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.scala-tools</groupId>
