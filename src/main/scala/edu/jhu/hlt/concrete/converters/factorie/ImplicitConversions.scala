@@ -5,6 +5,7 @@ import edu.jhu.hlt.concrete.Concrete
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
 import cc.factorie.app.nlp.parse.ParseTree
+import cc.factorie.app.nlp.pos.PTBPosLabel
 
 /**
  * @author John Sullivan
@@ -12,6 +13,11 @@ import cc.factorie.app.nlp.parse.ParseTree
  * and FactorIE Documents.
  */
 object ImplicitConversions {
+
+  /*
+    Methods to convert Documents to Communications
+
+   */
 
   private def getUUID:Concrete.UUID = {
     val uuid = UUID.randomUUID
@@ -114,5 +120,56 @@ object ImplicitConversions {
 
   class MyDocument(doc:Document) {
     def asCommunication:Concrete.Communication = Document2Communication(doc)
+  }
+
+  /*
+    Methods to convert Communications to Documents
+
+   */
+
+  implicit def Communication2Document(comm:Concrete.Communication):Document = {
+    val id = comm.getGuid
+    val text = comm.getText
+    val document = new Document(text)
+    document.setName(id.getCorpusName)
+
+    comm.getSectionSegmentationList.asScala.foreach(ss=>{
+      ss.getSectionList.asScala.foreach(sec=>{
+        sec.getSentenceSegmentationList.asScala.foreach(sentSeg=>{
+          sentSeg.getSentenceList.asScala.foreach(sent=>{
+            if(sent.hasTextSpan){
+              val sentStart = sent.getTextSpan.getStart
+              val sentEnd = sent.getTextSpan.getEnd
+              val sentence =
+                new Sentence(document, sentStart, sentEnd-sentStart+1)
+
+              sent.getTokenizationList.asScala.foreach(tokenization=>{
+                tokenization.getTokenList.asScala.foreach(tok=>{
+                  val token = new Token(sentence, tok.getText)
+                  token.attr+=new TokenId(tok.getTokenId)
+                })
+                tokenization.getPosTagsList.asScala.foreach(tokTag=>{
+                  tokTag.getTaggedTokenList.asScala.foreach(tagTok=>{
+                    val tagTokId = tagTok.getTokenId
+                    sentence.tokens.foreach(token=>{
+                      if(token.attr[TokenId]==tagTokId){
+                        token.attr+=new PTBPosLabel(token, tagTok.getTag)
+                      }
+                    })
+                  })
+                })
+              })
+            }
+          })
+        })
+      })
+    })
+    document
+  }
+
+  implicit def Communication2MyCommunication(comm:Concrete.Communication) = new MyCommunication(comm)
+
+  class MyCommunication(comm:Concrete.Communication) {
+    def asDocument:Document = Communication2Document(comm)
   }
 }
