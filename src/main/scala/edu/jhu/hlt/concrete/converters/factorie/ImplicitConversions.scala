@@ -2,16 +2,15 @@ package edu.jhu.hlt.concrete.converters.factorie
 
 import java.util.UUID
 import edu.jhu.hlt.concrete.Concrete.{Communication, UUID => ConUUID, CommunicationGUID, TextSpan, Token => ConToken,
-                                      TokenTagging, Tokenization, TokenRefSequence, Parse, Sentence => ConSentence,
-                                      SentenceSegmentation, Section, SectionSegmentation}
-import edu.jhu.hlt.concrete.Concrete.Parse.Constituent
+                                      TokenTagging, Tokenization, TokenRef, Sentence => ConSentence,
+                                      SentenceSegmentation, Section, SectionSegmentation, DependencyParse}
+import edu.jhu.hlt.concrete.Concrete.DependencyParse.Dependency
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
-import cc.factorie.app.nlp.parse.ParseTree
 import cc.factorie.app.nlp.pos.PTBPosLabel
 
 /**
- * @author John Sullivan
+ * @author John Sullivan, tanx
  * This object contains implicit conversions between Concrete Communications
  * and FactorIE Documents.
  */
@@ -62,40 +61,42 @@ object ImplicitConversions {
     .addAllTaggedToken(toks.flatten.asJava)
     .build
 
-  implicit def TokenIterable2Tokenization(tokens:Iterable[Token]):Tokenization = Tokenization.newBuilder
-    .setUuid(getUUID)
-    .setKind(Tokenization.Kind.TOKEN_LIST)
-    .addAllToken((tokens map Fac2ConToken).asJava)
-    .addPosTags(tokens map posTagging)
-    .addNerTags(tokens map nerTagging)
-    .addLemmas(tokens map lemmaTagging)
-    .build
+  implicit def TokenIterable2Tokenization(tokens:Iterable[Token])(implicit uuid:ConUUID):Tokenization = {
+    Tokenization.newBuilder
+      .setUuid(uuid)
+      .setKind(Tokenization.Kind.TOKEN_LIST)
+      .addAllToken((tokens map Fac2ConToken).asJava)
+      .addPosTags(tokens map posTagging)
+      .addNerTags(tokens map nerTagging)
+      .addLemmas(tokens map lemmaTagging)
+      .build
+  }
 
-  implicit def Index2TokenRefSequence(idex:Int)(implicit uuid:ConUUID):TokenRefSequence = TokenRefSequence.newBuilder
-    .addTokenId(idex)
+  implicit def FacToken2TokenRef(tok:Token)(implicit uuid:ConUUID):TokenRef = TokenRef.newBuilder
+    .setTokenId(tok.position)
     .setTokenization(uuid)
     .build
 
-  //TODO Convert to Dependency Parse
-  private def makeConstituent(id:Int, tree:ParseTree):Constituent = {
-    val con = Constituent.newBuilder
-      .setId(id)
-      .setTag(tree.label(id).categoryValue)
-      .addAllChildren((tree.children(id).map(_.sentencePosition) map {makeConstituent(_,tree)}).asJava)
-    if(id == ParseTree.rootIndex) con.build else con.setTokenSequence(id).build
+  implicit def Sentence2DependencyParse(sent:Sentence):DependencyParse = DependencyParse.newBuilder
+    .setUuid(getUUID)
+    .addAllDependency((sent.toIterable map Token2Dependency).asJava)
+    .build
+
+
+  private def Token2Dependency(facTok:Token):Dependency = Option(facTok.parseParent) match {
+      case Some(parentToken) => Dependency.newBuilder.setGov(parentToken).setDep(facTok).setEdgeType(facTok.parseLabel.categoryValue).build
+      case None => Dependency.newBuilder.setDep(facTok).setEdgeType(facTok.parseLabel.categoryValue).build
+    }
+
+  implicit def Fac2ConSentence(facSent:Sentence):ConSentence = {
+    implicit val tokUUID:ConUUID = getUUID
+    ConSentence.newBuilder
+      .setUuid(getUUID)
+      .setTextSpan(facSent.start to facSent.end)
+      .addTokenization(facSent.toSeq)
+      .addDependencyParse(facSent)
+      .build
   }
-
-  implicit def Fac2ConParse(facPars:ParseTree):Parse = Parse.newBuilder
-    .setUuid(getUUID)
-    .setRoot(makeConstituent(ParseTree.rootIndex, facPars))
-    .build
-
-  implicit def Fac2ConSentence(facSent:Sentence):ConSentence = ConSentence.newBuilder
-    .setUuid(getUUID)
-    .setTextSpan(facSent.start to facSent.end)
-    .addTokenization(facSent.toSeq)
-    .addParse(facSent.parse)
-    .build
 
   implicit def FacConSentenceSegmentation(sents:Iterable[Sentence]):SentenceSegmentation = SentenceSegmentation.newBuilder
     .setUuid(getUUID)
