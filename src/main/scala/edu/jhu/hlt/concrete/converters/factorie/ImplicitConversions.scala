@@ -136,7 +136,7 @@ object ImplicitConversions {
     val text = comm.getText
     val document = new Document(text)
     document.setName(id.getCorpusName)
-
+    /*
     comm.getSectionSegmentationList.asScala.foreach(ss=>{
       ss.getSectionList.asScala.foreach(sec=>{
         sec.getSentenceSegmentationList.asScala.foreach(sentSeg=>{
@@ -167,7 +167,7 @@ object ImplicitConversions {
           })
         })
       })
-    })
+    })*/
     document
   }
 
