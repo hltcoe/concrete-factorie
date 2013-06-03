@@ -3,12 +3,11 @@ package edu.jhu.hlt.concrete.converters.factorie
 import java.util.UUID
 import edu.jhu.hlt.concrete.Concrete.{Communication, UUID => ConUUID, CommunicationGUID, TextSpan, Token => ConToken,
                                       TokenTagging, Tokenization, TokenRef, Sentence => ConSentence,
-                                      SentenceSegmentation, Section, SectionSegmentation, DependencyParse}
+                                      SentenceSegmentation, Section, SectionSegmentation, DependencyParse, AnnotationMetadata}
 import edu.jhu.hlt.concrete.Concrete.DependencyParse.Dependency
 import edu.jhu.hlt.concrete.Concrete.TokenTagging.TaggedToken
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
-import cc.factorie.app.nlp.pos.PTBPosLabel
 
 /**
  * @author John Sullivan, tanx
@@ -26,6 +25,11 @@ object ImplicitConversions {
     val uuid = UUID.randomUUID
     ConUUID.newBuilder.setHigh(uuid.getMostSignificantBits).setLow(uuid.getLeastSignificantBits).build
   }
+
+  private def factorieMetadata:AnnotationMetadata = AnnotationMetadata.newBuilder
+    .setTool("FactorIE 1.0.0-M4")
+    .setConfidence(1)
+    .build
 
   implicit def Name2Guid(docName:String):CommunicationGUID = CommunicationGUID.newBuilder
     .setCorpusName(docName)
@@ -59,12 +63,14 @@ object ImplicitConversions {
 
   implicit def Tags2Tagging(toks:Iterable[Option[TaggedToken]]):TokenTagging = TokenTagging.newBuilder
     .setUuid(getUUID)
+    .setMetadata(factorieMetadata)
     .addAllTaggedToken(toks.flatten.asJava)
     .build
 
   implicit def TokenIterable2Tokenization(tokens:Iterable[Token])(implicit uuid:ConUUID):Tokenization = {
     Tokenization.newBuilder
       .setUuid(uuid)
+      .setMetadata(factorieMetadata)
       .setKind(Tokenization.Kind.TOKEN_LIST)
       .addAllToken((tokens map Fac2ConToken).asJava)
       .addPosTags(tokens map posTagging)
@@ -80,6 +86,7 @@ object ImplicitConversions {
 
   private def sentenceToDependencyParse(sent:Sentence, uuid:ConUUID):DependencyParse = DependencyParse.newBuilder
     .setUuid(getUUID)
+    .setMetadata(factorieMetadata)
     .addAllDependency((sent.toIterable map {Token2Dependency(_,uuid)}).asJava)
     .build
 
@@ -101,6 +108,7 @@ object ImplicitConversions {
 
   implicit def FacConSentenceSegmentation(sents:Iterable[Sentence]):SentenceSegmentation = SentenceSegmentation.newBuilder
     .setUuid(getUUID)
+    .setMetadata(factorieMetadata)
     .addAllSentence((sents map Fac2ConSentence).asJava)
     .build
 
