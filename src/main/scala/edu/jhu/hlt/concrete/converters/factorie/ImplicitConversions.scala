@@ -5,6 +5,7 @@ import edu.jhu.hlt.concrete.Concrete.{Communication, UUID => ConUUID, Communicat
                                       TokenTagging, Tokenization, TokenRef, Sentence => ConSentence,
                                       SentenceSegmentation, Section, SectionSegmentation, DependencyParse}
 import edu.jhu.hlt.concrete.Concrete.DependencyParse.Dependency
+import edu.jhu.hlt.concrete.Concrete.TokenTagging.TaggedToken
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
 import cc.factorie.app.nlp.pos.PTBPosLabel
@@ -41,22 +42,22 @@ object ImplicitConversions {
     .setTextSpan(facTok.stringStart to facTok.stringEnd)
     .build
 
-  private def posTagging(tok:Token):Option[TokenTagging.TaggedToken] = Option(tok.posLabel) match {
-    case Some(posLabel) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(posLabel.categoryValue).build)
+  private def posTagging(tok:Token):Option[TaggedToken] = Option(tok.posLabel) match {
+    case Some(posLabel) => Some(TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(posLabel.categoryValue).build)
     case _ => None
   }
 
-  private def nerTagging(tok:Token):Option[TokenTagging.TaggedToken] = Option(tok.nerLabel) match {
-    case Some(nerLabel) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(nerLabel.categoryValue).build)
+  private def nerTagging(tok:Token):Option[TaggedToken] = Option(tok.nerLabel) match {
+    case Some(nerLabel) => Some(TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(nerLabel.categoryValue).build)
     case _ => None
   }
 
-  private def lemmaTagging(tok:Token):Option[TokenTagging.TaggedToken] = Option(tok.lemma) match {
-    case Some(lemma) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(lemma.lemma).build)
+  private def lemmaTagging(tok:Token):Option[TaggedToken] = Option(tok.lemma) match {
+    case Some(lemma) => Some(TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(lemma.lemma).build)
     case _ => None
   }
 
-  implicit def Tags2Tagging(toks:Iterable[Option[TokenTagging.TaggedToken]]):TokenTagging = TokenTagging.newBuilder
+  implicit def Tags2Tagging(toks:Iterable[Option[TaggedToken]]):TokenTagging = TokenTagging.newBuilder
     .setUuid(getUUID)
     .addAllTaggedToken(toks.flatten.asJava)
     .build
