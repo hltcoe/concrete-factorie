@@ -72,30 +72,12 @@ object ImplicitConversions {
       .build
   }
 
-<<<<<<< HEAD
   implicit def FacToken2TokenRef(tok:Token)(implicit uuid:ConUUID):TokenRef = TokenRef.newBuilder
     .setTokenId(tok.position)
     .setTokenization(uuid)
     .build
 
   implicit def Sentence2DependencyParse(sent:Sentence):DependencyParse = DependencyParse.newBuilder
-=======
-  implicit def Index2TokenRefSequence(idex:Int):TokenRefSequence = TokenRefSequence.newBuilder
-    .addTokenId(idex)
-    .setTokenization(getUUID)
-    .build
-
-  //TODO Convert to Dependency Parse
-  private def makeConstituent(id:Int, tree:ParseTree):Constituent = {
-    val con = Constituent.newBuilder
-      .setId(id)
-      .setTag(tree.label(id).categoryValue)
-      //.addAllChildren((tree.children(id).map(_.sentencePosition) map {makeConstituent(_,tree)}).asJava)
-    if(id == ParseTree.rootIndex) con.build else con.setTokenSequence(id).build
-  }
-
-  implicit def Fac2ConParse(facPars:ParseTree):Parse = Parse.newBuilder
->>>>>>> 391852f049122e528ee994ea9a9d577ef1760c27
     .setUuid(getUUID)
     .addAllDependency((sent.toIterable map Token2Dependency).asJava)
     .build
