@@ -71,9 +71,9 @@ object ImplicitConversions {
     .addLemmas(tokens map lemmaTagging)
     .build
 
-  implicit def Index2TokenRefSequence(idex:Int)(implicit uuid:ConUUID):TokenRefSequence = TokenRefSequence.newBuilder
+  implicit def Index2TokenRefSequence(idex:Int):TokenRefSequence = TokenRefSequence.newBuilder
     .addTokenId(idex)
-    .setTokenization(uuid)
+    .setTokenization(getUUID)
     .build
 
   //TODO Convert to Dependency Parse
@@ -81,7 +81,7 @@ object ImplicitConversions {
     val con = Constituent.newBuilder
       .setId(id)
       .setTag(tree.label(id).categoryValue)
-      .addAllChildren((tree.children(id).map(_.sentencePosition) map {makeConstituent(_,tree)}).asJava)
+      //.addAllChildren((tree.children(id).map(_.sentencePosition) map {makeConstituent(_,tree)}).asJava)
     if(id == ParseTree.rootIndex) con.build else con.setTokenSequence(id).build
   }
 
