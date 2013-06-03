@@ -6,9 +6,11 @@
 .project
 .settings
 
-target
+target/*
+data/*
 
 .idea
 .DS_Store
 *.log
 .cache
+/target
