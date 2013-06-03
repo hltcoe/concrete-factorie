@@ -1,13 +1,13 @@
 *~
 *.diff
 *.class
+*.out
 *#
 .classpath
 .project
 .settings
 
 target/*
-data/*
 
 .idea
 .DS_Store

@@ -26,15 +26,15 @@ object Concrete2Factorie {
 		log.info("Reading protobuf file from: "+commFile.getAbsolutePath())
 		val fis = new FileInputStream(commFile)
 		val pbr = new ProtocolBufferReader(fis, classOf[Communication])
-		val knowledge_graph = pbr.next().asInstanceOf[KnowledgeGraph]
+		//val knowledge_graph = pbr.next().asInstanceOf[KnowledgeGraph]
 		val docs = new ArrayBuffer[Document]
 		val loop = new Breaks;
 		loop.breakable{
 			do{ // To-Do:no hasnext() method
 				var nextMessage = pbr.next()
-				log.info(nextMessage.getSerializedSize().toString)
 				if(nextMessage ne null) {
 					val curComm = nextMessage.asInstanceOf[Communication]
+					log.info("Got document: \n"+curComm.toString())
 					val document = curComm.asDocument
 					docs.append(document)
 					log.info("Got document: "+document.name)
