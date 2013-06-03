@@ -36,23 +36,23 @@ object ImplicitConversions {
     .build
 
   implicit def Fac2ConToken(facTok:Token):ConToken = ConToken.newBuilder
-    .setTokenId(facTok.sentencePosition)
+    .setTokenId(facTok.positionInSentence)
     .setText(facTok.string)
     .setTextSpan(facTok.stringStart to facTok.stringEnd)
     .build
 
   private def posTagging(tok:Token):Option[TokenTagging.TaggedToken] = Option(tok.posLabel) match {
-    case Some(posLabel) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.sentencePosition).setTag(posLabel.categoryValue).build)
+    case Some(posLabel) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(posLabel.categoryValue).build)
     case _ => None
   }
 
   private def nerTagging(tok:Token):Option[TokenTagging.TaggedToken] = Option(tok.nerLabel) match {
-    case Some(nerLabel) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.sentencePosition).setTag(nerLabel.categoryValue).build)
+    case Some(nerLabel) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(nerLabel.categoryValue).build)
     case _ => None
   }
 
   private def lemmaTagging(tok:Token):Option[TokenTagging.TaggedToken] = Option(tok.lemma) match {
-    case Some(lemma) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.sentencePosition).setTag(lemma.lemma).build)
+    case Some(lemma) => Some(TokenTagging.TaggedToken.newBuilder.setTokenId(tok.positionInSentence).setTag(lemma.lemma).build)
     case _ => None
   }
 
@@ -72,20 +72,20 @@ object ImplicitConversions {
       .build
   }
 
-  implicit def FacToken2TokenRef(tok:Token)(implicit uuid:ConUUID):TokenRef = TokenRef.newBuilder
+  private def tokenToTokenRef(tok:Token, uuid:ConUUID):TokenRef = TokenRef.newBuilder
     .setTokenId(tok.position)
     .setTokenization(uuid)
     .build
 
-  implicit def Sentence2DependencyParse(sent:Sentence):DependencyParse = DependencyParse.newBuilder
+  private def sentenceToDependencyParse(sent:Sentence, uuid:ConUUID):DependencyParse = DependencyParse.newBuilder
     .setUuid(getUUID)
-    .addAllDependency((sent.toIterable map Token2Dependency).asJava)
+    .addAllDependency((sent.toIterable map {Token2Dependency(_,uuid)}).asJava)
     .build
 
 
-  private def Token2Dependency(facTok:Token):Dependency = Option(facTok.parseParent) match {
-      case Some(parentToken) => Dependency.newBuilder.setGov(parentToken).setDep(facTok).setEdgeType(facTok.parseLabel.categoryValue).build
-      case None => Dependency.newBuilder.setDep(facTok).setEdgeType(facTok.parseLabel.categoryValue).build
+  private def Token2Dependency(facTok:Token, uuid:ConUUID):Dependency = Option(facTok.parseParent) match {
+      case Some(parentToken) => Dependency.newBuilder.setGov(tokenToTokenRef(parentToken, uuid)).setDep(tokenToTokenRef(facTok, uuid)).setEdgeType(facTok.parseLabel.categoryValue).build
+      case None => Dependency.newBuilder.setDep(tokenToTokenRef(facTok, uuid)).setEdgeType(facTok.parseLabel.categoryValue).build
     }
 
   implicit def Fac2ConSentence(facSent:Sentence):ConSentence = {
@@ -94,7 +94,7 @@ object ImplicitConversions {
       .setUuid(getUUID)
       .setTextSpan(facSent.start to facSent.end)
       .addTokenization(facSent.toSeq)
-      .addDependencyParse(facSent)
+      .addDependencyParse(sentenceToDependencyParse(facSent, tokUUID))
       .build
   }
 
