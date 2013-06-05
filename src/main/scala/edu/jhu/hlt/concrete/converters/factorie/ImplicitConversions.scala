@@ -139,13 +139,15 @@ object ImplicitConversions {
   implicit def Communication2MyCommunication(comm:Communication) = new MyCommunication(comm)
     
   class MyCommunication(comm:Communication) {
+    private val docWrapper = new DocumentWrapper(comm)
   	def asDocument:Seq[Document] = asDocument[StringVariable](new StringVariable("DEFAULT"))
     def asDocument[T<:StringVariable](annoTheory:T):Seq[Document] = {
   		if(annoTheory.value eq "DEFAULT") return Seq(new DocumentWrapper(comm).head)
   		else{
   			val classType = annoTheory.getClass()
-  			return new DocumentWrapper(comm).filter(doc => doc.attr.apply(classType).value==annoTheory.value).toSeq
+  			return docWrapper.filter(doc => doc.attr.apply(classType).value==annoTheory.value).toSeq
   		} 
   	}
+    def enumerateTheories // todo implement me to return a structure of annotation theories present in the communication
   }
 }
