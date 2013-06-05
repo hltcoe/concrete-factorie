@@ -10,10 +10,10 @@ import cc.factorie.app.nlp._
 /**
  * @author John Sullivan, Tan Xu
  */
-object PosDomain extends CategoricalDomain[String]
-object NerDomain extends CategoricalDomain[String]
-class PosLabel(val token:Token, targetValue:String) extends LabeledCategoricalVariable(targetValue) { def domain = PosDomain } 
-class NerLabel(val token:Token, targetValue:String) extends LabeledCategoricalVariable(targetValue) { def domain = NerDomain }
+object MyPosDomain extends CategoricalDomain[String]
+object MyNerDomain extends CategoricalDomain[String]
+class MyPosLabel(val token:Token, targetValue:String) extends LabeledCategoricalVariable(targetValue) { def domain = MyPosDomain } 
+class MyNerLabel(val token:Token, targetValue:String) extends LabeledCategoricalVariable(targetValue) { def domain = MyNerDomain }
 class Lemmas(lemmas:String) extends StringVariable(lemmas)
 class TokenId(id:Int=99999) extends IntegerVariable(id)
 class SectionSegmentationTheory(theory:String="") extends StringVariable(theory)
@@ -69,8 +69,8 @@ class DocumentWrapper(comm:Communication) extends Iterable[Document] {
   	doc1.foreach(tok1=>{
   		val tok2 = new Token(doc2, tok1.string)
   		// copy TOKEN attrs
-  		tok2.attr+=new PosLabel(tok2, tok1.attr[PosLabel].categoryValue)
-  		tok2.attr+=new NerLabel(tok2, tok1.attr[NerLabel].categoryValue)
+  		tok2.attr+=new MyPosLabel(tok2, tok1.attr[MyPosLabel].categoryValue)
+  		tok2.attr+=new MyNerLabel(tok2, tok1.attr[MyNerLabel].categoryValue)
   		tok2.attr+=new Lemmas(tok1.attr[Lemmas].value)
   	})
   }
@@ -116,7 +116,7 @@ class DocumentWrapper(comm:Communication) extends Iterable[Document] {
   							val posTokId = posTok.getTokenId
   							val posTokTag = posTok.getTag()
   							sentence.tokens.filter(token=>token.attr[TokenId].value==posTokId)
-  								.foreach(token=>token.attr+=new PosLabel(token, posTokTag))
+  								.foreach(token=>token.attr+=new MyPosLabel(token, posTokTag))
   						})
   					})
   					
@@ -128,7 +128,7 @@ class DocumentWrapper(comm:Communication) extends Iterable[Document] {
   							val nerTokId = nerTok.getTokenId()
   							val nerTokTag = nerTok.getTag()
   							sentence.tokens.filter(token=>token.attr[TokenId].value==nerTokId)
-  								.foreach(token=>token.attr+=new NerLabel(token, nerTokTag))
+  								.foreach(token=>token.attr+=new MyNerLabel(token, nerTokTag))
   						})
   						
   					})
