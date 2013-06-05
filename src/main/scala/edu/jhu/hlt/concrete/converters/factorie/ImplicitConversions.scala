@@ -141,7 +141,8 @@ object ImplicitConversions {
     
   class MyCommunication(comm:Communication) {
     private val docWrapper = new DocumentWrapper(comm)
-  	def asDocument:Seq[Document] = asDocument[StringVariable](new StringVariable("DEFAULT"))
+    println("Got documentWrapper: "+docWrapper.size+" level")
+  	def asDocument:Document = asDocument[StringVariable](new StringVariable("DEFAULT")).head
     def asDocument[T<:StringVariable](annoTheory:T):Seq[Document] = {
   		if(annoTheory.value eq "DEFAULT") return Seq(new DocumentWrapper(comm).head)
   		else{

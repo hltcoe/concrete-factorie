@@ -36,12 +36,21 @@ object Concrete2Factorie {
 			do{
 				val curComm = Communication.parseDelimitedFrom(reader)
 				if(curComm eq null) loop.break
-				log.info("Got communication:\n"+curComm.toString())
-				val documentWrapper = curComm.asDocument
+				//log.info("Got communication:\n"+curComm.toString())
 				//val documentWrapper = curComm.asDocument[SectionSegmentationTheory](new SectionSegmentationTheory("Annotated Gigaword Pipeline"))
-				val document = documentWrapper.head
+				//val document = documentWrapper.head
+				val document = curComm.asDocument
 				docs.append(document)
-				log.info("Got document: "+document.name+"\nAnnotation: "+document.attr[SentenceSegmentationTheory].value)
+				log.info("Got document: "+document.name+
+						"\n SectionSegmentationTheory: "+document.attr[SectionSegmentationTheory].value+
+						"\n SentenceSegmentationTheory: "+document.attr[SentenceSegmentationTheory].value+
+						"\n TokenizationTheory: "+document.attr[TokenizationTheory].value+
+						"\n PosTagTheory: "+document.attr[PosTagTheory].value+
+						"\n Sentences: "+document.sentences.size+
+						"\n Tokens: "+document.tokens.size)
+				println(document.string)
+				document.sentences.foreach(sent=>println("Sentence: "+sent.string))
+				document.foreach(tok=>println(tok.string+"\t"+tok.attr[PosLabel].categoryValue+"\t"+tok.attr[NerLabel].categoryValue+"\t"+tok.attr[Lemmas].value))
 			}while(true)
 		}
 		
