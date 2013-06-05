@@ -22,12 +22,12 @@ object ImplicitConversions {
 
    */
 
-  private def getUUID:ConUUID = {
+  def getUUID:ConUUID = {
     val uuid = UUID.randomUUID
     ConUUID.newBuilder.setHigh(uuid.getMostSignificantBits).setLow(uuid.getLeastSignificantBits).build
   }
 
-  private def factorieMetadata:AnnotationMetadata = AnnotationMetadata.newBuilder
+  implicit val factorieMetadata:AnnotationMetadata = AnnotationMetadata.newBuilder
     .setTool("FactorIE 1.0.0-M4")
     .setConfidence(1)
     .build
@@ -62,16 +62,16 @@ object ImplicitConversions {
     case _ => None
   }
 
-  implicit def Tags2Tagging(toks:Iterable[Option[TaggedToken]]):TokenTagging = TokenTagging.newBuilder
+  implicit def Tags2Tagging(toks:Iterable[Option[TaggedToken]])(implicit meta:AnnotationMetadata):TokenTagging = TokenTagging.newBuilder
     .setUuid(getUUID)
-    .setMetadata(factorieMetadata)
+    .setMetadata(meta)
     .addAllTaggedToken(toks.flatten.asJava)
     .build
 
-  implicit def TokenIterable2Tokenization(tokens:Iterable[Token])(implicit uuid:ConUUID):Tokenization = {
+  implicit def TokenIterable2Tokenization(tokens:Iterable[Token])(implicit uuid:ConUUID, meta:AnnotationMetadata):Tokenization = {
     Tokenization.newBuilder
       .setUuid(uuid)
-      .setMetadata(factorieMetadata)
+      .setMetadata(meta)
       .setKind(Tokenization.Kind.TOKEN_LIST)
       .addAllToken((tokens map Fac2ConToken).asJava)
       .addPosTags(tokens map posTagging)
@@ -85,9 +85,9 @@ object ImplicitConversions {
     .setTokenization(uuid)
     .build
 
-  private def sentenceToDependencyParse(sent:Sentence, uuid:ConUUID):DependencyParse = DependencyParse.newBuilder
+  private def sentenceToDependencyParse(sent:Sentence, uuid:ConUUID)(implicit meta:AnnotationMetadata):DependencyParse = DependencyParse.newBuilder
     .setUuid(getUUID)
-    .setMetadata(factorieMetadata)
+    .setMetadata(meta)
     .addAllDependency((sent.toIterable map {Token2Dependency(_,uuid)}).asJava)
     .build
 
@@ -107,19 +107,20 @@ object ImplicitConversions {
       .build
   }
 
-  implicit def FacConSentenceSegmentation(sents:Iterable[Sentence]):SentenceSegmentation = SentenceSegmentation.newBuilder
+  implicit def FacConSentenceSegmentation(sents:Iterable[Sentence])(implicit meta:AnnotationMetadata):SentenceSegmentation = SentenceSegmentation.newBuilder
     .setUuid(getUUID)
-    .setMetadata(factorieMetadata)
+    .setMetadata(meta)
     .addAllSentence((sents map Fac2ConSentence).asJava)
     .build
 
-  private def Document2Communication(doc:Document):Communication = Communication.newBuilder
+  private def Document2Communication(doc:Document)(implicit meta:AnnotationMetadata):Communication = Communication.newBuilder
     .setUuid(getUUID)
     .setGuid(doc.name)
     .setText(doc.string)
     .addSectionSegmentation{
     SectionSegmentation.newBuilder // Factorie doesn't split documents into paragraphs
       .setUuid(getUUID)
+      .setMetadata(meta)
       .addSection{
       Section.newBuilder
         .setUuid(getUUID)
@@ -148,6 +149,6 @@ object ImplicitConversions {
   			return docWrapper.filter(doc => doc.attr.apply(classType).value==annoTheory.value).toSeq
   		} 
   	}
-    def enumerateTheories // todo implement me to return a structure of annotation theories present in the communication
+    def enumerateTheories = null// todo implement me to return a structure of annotation theories present in the communication
   }
 }
