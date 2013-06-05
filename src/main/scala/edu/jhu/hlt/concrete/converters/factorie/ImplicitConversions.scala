@@ -44,7 +44,7 @@ object ImplicitConversions {
   implicit def Fac2ConToken(facTok:Token):ConToken = ConToken.newBuilder
     .setTokenId(facTok.positionInSentence)
     .setText(facTok.string)
-    .setTextSpan(facTok.stringStart to facTok.stringEnd)
+    .setTextSpan(0 to facTok.string.length)
     .build
 
   private def posTagging(tok:Token):Option[TaggedToken] = Option(tok.posLabel) match {
@@ -101,7 +101,7 @@ object ImplicitConversions {
     implicit val tokUUID:ConUUID = getUUID
     ConSentence.newBuilder
       .setUuid(getUUID)
-      .setTextSpan(facSent.start to facSent.end)
+      .setTextSpan(0 to facSent.toString.length)
       .addTokenization(facSent.toSeq)
       .addDependencyParse(sentenceToDependencyParse(facSent, tokUUID))
       .build
