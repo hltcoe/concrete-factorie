@@ -11,39 +11,40 @@ import scala.collection.mutable.ArrayBuffer
 import edu.jhu.hlt.concrete.converters.factorie.ImplicitConversions._
 import scala.util.control.Breaks
 import edu.jhu.hlt.concrete.Concrete.KnowledgeGraph
+import java.util.zip.GZIPInputStream
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.BufferedInputStream
 
 /**
  * @author tanx
  * 
  */
-class TokenId (s:Int=0) extends IntegerVariable(s)
 object Concrete2Factorie {
 	
 	val log = Logger.getLogger(Concrete2Factorie.getClass().getName())
 	
 	def getFactorieDocs(pathToComm:String): ArrayBuffer[Document]={
-		val commFile = new File(pathToComm)
-		log.info("Reading protobuf file from: "+commFile.getAbsolutePath())
-		val fis = new FileInputStream(commFile)
-		val pbr = new ProtocolBufferReader(fis, classOf[Communication])
-		//val knowledge_graph = pbr.next().asInstanceOf[KnowledgeGraph]
+		log.info("Reading protobuf file from: "+pathToComm)
 		val docs = new ArrayBuffer[Document]
+		
+		val reader = new BufferedInputStream(new GZIPInputStream(new FileInputStream(pathToComm)))
+		val kg = KnowledgeGraph.parseDelimitedFrom(reader)
+		log.info("Got knowledgeGraph:\n"+kg.toString())
 		val loop = new Breaks;
 		loop.breakable{
-			do{ // To-Do:no hasnext() method
-				var nextMessage = pbr.next()
-				if(nextMessage ne null) {
-					val curComm = nextMessage.asInstanceOf[Communication]
-					log.info("Got document: \n"+curComm.toString())
-					val document = curComm.asDocument
-					docs.append(document)
-					log.info("Got document: "+document.name)
-				}else loop.break 
+			do{
+				val curComm = Communication.parseDelimitedFrom(reader)
+				if(curComm eq null) loop.break
+				log.info("Got communication:\n"+curComm.toString())
+				val documentWrapper = curComm.asDocument
+				//val documentWrapper = curComm.asDocument[SectionSegmentationTheory](new SectionSegmentationTheory("Annotated Gigaword Pipeline"))
+				val document = documentWrapper.head
+				docs.append(document)
+				log.info("Got document: "+document.name+"\nAnnotation: "+document.attr[SentenceSegmentationTheory].value)
 			}while(true)
 		}
 		
-		pbr.close()
-        fis.close()
         return docs
 	}
 	

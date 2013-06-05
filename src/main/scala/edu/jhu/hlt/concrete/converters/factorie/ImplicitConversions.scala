@@ -8,6 +8,7 @@ import edu.jhu.hlt.concrete.Concrete.DependencyParse.Dependency
 import edu.jhu.hlt.concrete.Concrete.TokenTagging.TaggedToken
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
+import cc.factorie.StringVariable
 
 /**
  * @author John Sullivan, tanx
@@ -135,54 +136,16 @@ object ImplicitConversions {
     def asCommunication:Communication = Document2Communication(doc)
   }
 
-  /*
-    Methods to convert Communications to Documents
-
-   */
-
-  private def Communication2Document(comm:Communication):Document = {
-    val id = comm.getGuid
-    val text = comm.getText
-    val document = new Document(text)
-    document.setName(id.getCorpusName)
-    /*
-    comm.getSectionSegmentationList.asScala.foreach(ss=>{
-      ss.getSectionList.asScala.foreach(sec=>{
-        sec.getSentenceSegmentationList.asScala.foreach(sentSeg=>{
-          sentSeg.getSentenceList.asScala.foreach(sent=>{
-            if(sent.hasTextSpan){
-              val sentStart = sent.getTextSpan.getStart
-              val sentEnd = sent.getTextSpan.getEnd
-              val sentence =
-                new Sentence(document, sentStart, sentEnd-sentStart+1)
-
-              sent.getTokenizationList.asScala.foreach(tokenization=>{
-                tokenization.getTokenList.asScala.foreach(tok=>{
-                  val token = new Token(sentence, tok.getText)
-                  token.attr+=new TokenId(tok.getTokenId)
-                })
-                tokenization.getPosTagsList.asScala.foreach(tokTag=>{
-                  tokTag.getTaggedTokenList.asScala.foreach(tagTok=>{
-                    val tagTokId = tagTok.getTokenId
-                    sentence.tokens.foreach(token=>{
-                      if(token.attr[TokenId]==tagTokId){
-                        token.attr+=new PTBPosLabel(token, tagTok.getTag)
-                      }
-                    })
-                  })
-                })
-              })
-            }
-          })
-        })
-      })
-    })*/
-    document
-  }
-
   implicit def Communication2MyCommunication(comm:Communication) = new MyCommunication(comm)
-
+    
   class MyCommunication(comm:Communication) {
-    def asDocument:Document = Communication2Document(comm)
+  	def asDocument:Seq[Document] = asDocument[StringVariable](new StringVariable("DEFAULT"))
+    def asDocument[T<:StringVariable](annoTheory:T):Seq[Document] = {
+  		if(annoTheory.value eq "DEFAULT") return Seq(new DocumentWrapper(comm).head)
+  		else{
+  			val classType = annoTheory.getClass()
+  			return new DocumentWrapper(comm).filter(doc => doc.attr.apply(classType).value==annoTheory.value).toSeq
+  		} 
+  	}
   }
 }

@@ -97,7 +97,7 @@
 						<jvmArgs>
 							<jvmArg>-d64</jvmArg>
 							<jvmArg>-Xmx2g</jvmArg>
-							<jvmArg>-DtestDat=data/rf-concrete-dump.pb.gz</jvmArg>
+							<jvmArg>-DtestDat=data/roth_frank_docs.concrete.gz</jvmArg>
 						</jvmArgs>
 					</launcher>
 				</launchers>
