@@ -6,6 +6,8 @@ import scala.collection.JavaConverters._
 import cc.factorie.{CategoricalValue, CategoricalDomain}
 import cc.factorie._
 import cc.factorie.app.nlp._
+import cc.factorie.app.nlp.lemma.TokenLemma
+import cc.factorie.app.nlp.ner.ChainNerLabel
 
 /**
  * @author John Sullivan, Tan Xu
@@ -14,7 +16,6 @@ object MyPosDomain extends CategoricalDomain[String]
 object MyNerDomain extends CategoricalDomain[String]
 class MyPosLabel(val token:Token, targetValue:String) extends LabeledCategoricalVariable(targetValue) { def domain = MyPosDomain } 
 class MyNerLabel(val token:Token, targetValue:String) extends LabeledCategoricalVariable(targetValue) { def domain = MyNerDomain }
-class Lemmas(lemmas:String) extends StringVariable(lemmas)
 class TokenId(id:Int=99999) extends IntegerVariable(id)
 class SectionSegmentationTheory(theory:String="") extends StringVariable(theory)
 class SentenceSegmentationTheory(theory:String="") extends StringVariable(theory)
@@ -29,11 +30,27 @@ class DocumentWrapper(comm:Communication) extends Iterable[Document] {
   def iterator:Iterator[Document] = docs.toIterator
 
   private val docName:String = comm.getGuid.getCorpusName + ":" + comm.getGuid.getCommunicationId
-  private val docString:String = comm.getText
+  //private val docString:String = comm.getText
   private var docs:Seq[Document] = Seq()
   
+  def add(doc:Document) = docs:+=doc
+  
+  def setTheory[T<:StringVariable](theory:T):Seq[Document]={
+  	val classType = theory.getClass()
+  	val str = theory.value
+  	var documents = docs.filter(doc=>(doc.attr.apply(classType).value=="" 
+  								|| doc.attr.apply(classType).value==str))
+  	if(documents.isEmpty){
+  		println("Adding document by new theory: "+theory)
+  		documents = Seq(newDocument[T](docs.last, theory))
+  	} 
+  	documents.foreach(doc=>doc.attr.apply(classType).set(str)(null))
+  	documents
+  }
+  
   private def newDocument[T<:StringVariable](prevDoc:Document, theory:T):Document ={
-  	val doc = new Document(docString).setName(docName)
+  	//val doc = new Document(docString).setName(docName)
+  	val doc = new Document().setName(docName)
   	doc.attr+=new SectionSegmentationTheory
   	doc.attr+=new SentenceSegmentationTheory
   	doc.attr+=new TokenizationTheory
@@ -42,7 +59,7 @@ class DocumentWrapper(comm:Communication) extends Iterable[Document] {
   	doc.attr+=new LemmasTheory
   	if(prevDoc ne null) 
   		copy[T](prevDoc, doc, theory)
-  	docs :+= doc
+  	add(doc)
   	doc
   }
   
@@ -70,84 +87,10 @@ class DocumentWrapper(comm:Communication) extends Iterable[Document] {
   		val tok2 = new Token(doc2, tok1.string)
   		// copy TOKEN attrs
   		tok2.attr+=new MyPosLabel(tok2, tok1.attr[MyPosLabel].categoryValue)
-  		tok2.attr+=new MyNerLabel(tok2, tok1.attr[MyNerLabel].categoryValue)
-  		tok2.attr+=new Lemmas(tok1.attr[Lemmas].value)
+  		tok2.attr+=new CommNerLabel(tok2, tok1.attr[MyNerLabel].categoryValue)
+  		tok2.attr+=new TokenLemma(tok2, tok1.lemma.value)
   	})
   }
   
-  private def setTheory[T<:StringVariable](theory:T):Document={
-  	val classType = theory.getClass()
-  	val str = theory.value
-  	var doc:Document = null
-  	val curTheoryValue = docs.last.attr.apply(classType).value
-  	if(curTheoryValue!="" && curTheoryValue!=str) 
-  		doc = newDocument[T](docs.last, theory)
-  	else doc = docs.last
-  	doc.attr.apply(classType).set(str)(null)
-  	doc
-  }
-  
-  
-  var document = newDocument(null, null)
-  var theory = ""
-  comm.getSectionSegmentationList().asScala.foreach(ss=>{
-  	theory = ss.getMetadata().getTool()
-  	document = setTheory[SectionSegmentationTheory](new SectionSegmentationTheory(theory))
-  	ss.getSectionList.asScala.foreach(sec=>{
-  		sec.getSentenceSegmentationList.asScala.foreach(sentSeg=>{
-  			theory = sentSeg.getMetadata().getTool()
-  			document = setTheory[SentenceSegmentationTheory](new SentenceSegmentationTheory(theory))
-  			sentSeg.getSentenceList.asScala.foreach(sent=>{
-  				new Sentence(document)
-  				sent.getTokenizationList.asScala.foreach(tokenization=>{
-  					theory = tokenization.getMetadata().getTool()
-  					document = setTheory[TokenizationTheory](new TokenizationTheory(theory))
-  					val sentence = document.sentences.last
-  					// TOKEN
-  					tokenization.getTokenList.asScala.foreach(tok=>{
-  						val token = new Token(sentence, tok.getText())
-  						token.attr+=new TokenId(tok.getTokenId)
-  					})
-  					// POS TAG
-  					tokenization.getPosTagsList.asScala.foreach(tokTag=>{
-  						theory = tokTag.getMetadata().getTool()
-  						document = setTheory[PosTagTheory](new PosTagTheory(theory))
-  						tokTag.getTaggedTokenList.asScala.foreach(posTok=>{
-  							val posTokId = posTok.getTokenId
-  							val posTokTag = posTok.getTag()
-  							sentence.tokens.filter(token=>token.attr[TokenId].value==posTokId)
-  								.foreach(token=>token.attr+=new MyPosLabel(token, posTokTag))
-  						})
-  					})
-  					
-  					// NER TAG
-  					tokenization.getNerTagsList.asScala.foreach(nerTag=>{
-  						theory = nerTag.getMetadata().getTool()
-  						document = setTheory[NerTagTheory](new NerTagTheory(theory))
-  						nerTag.getTaggedTokenList.asScala.foreach(nerTok=>{
-  							val nerTokId = nerTok.getTokenId()
-  							val nerTokTag = nerTok.getTag()
-  							sentence.tokens.filter(token=>token.attr[TokenId].value==nerTokId)
-  								.foreach(token=>token.attr+=new MyNerLabel(token, nerTokTag))
-  						})
-  						
-  					})
-  					// LEMMAS
-  					tokenization.getLemmasList.asScala.foreach(lemmas=>{
-  						theory = lemmas.getMetadata().getTool()
-  						document = setTheory[LemmasTheory](new LemmasTheory(theory))
-  						lemmas.getTaggedTokenList.asScala.foreach(lemTok=>{
-  							val lemTokId = lemTok.getTokenId()
-  							val lemTokTag = lemTok.getTag()
-  							sentence.tokens.filter(token=>token.attr[TokenId].value==lemTokId)
-  								.foreach(token=>token.attr+=new Lemmas(lemTokTag))
-  						})
-  					})
-  					
-  					// DEPENDENCE PARSE see cc.factorie.app.nlp.parse.ParseLabel.scala
-  				})
-  			})
-  		})
-  	})
-  })
+  newDocument(null, null)
 }

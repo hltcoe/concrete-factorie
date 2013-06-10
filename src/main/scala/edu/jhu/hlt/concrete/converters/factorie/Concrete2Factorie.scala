@@ -50,7 +50,7 @@ object Concrete2Factorie {
 						"\n Tokens: "+document.tokens.size)
 				println(document.string)
 				document.sentences.foreach(sent=>println("Sentence: "+sent.string))
-				document.foreach(tok=>println(tok.string+"\t"+tok.attr[MyPosLabel].categoryValue+"\t"+tok.attr[MyNerLabel].categoryValue+"\t"+tok.attr[Lemmas].value))
+				document.foreach(tok=>println(tok.string+"\t"+tok.attr[MyPosLabel].categoryValue+"\t"+tok.attr[MyNerLabel].categoryValue+"\t"+tok.lemma.value))
 			}while(true)
 		}
 		

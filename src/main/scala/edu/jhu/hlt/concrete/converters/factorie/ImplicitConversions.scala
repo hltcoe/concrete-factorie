@@ -9,6 +9,7 @@ import edu.jhu.hlt.concrete.Concrete.TokenTagging.TaggedToken
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
 import cc.factorie.StringVariable
+import cc.factorie.app.nlp.lemma.TokenLemma
 
 /**
  * @author John Sullivan, tanx
@@ -136,15 +137,86 @@ object ImplicitConversions {
   class MyDocument(doc:Document) {
     def asCommunication:Communication = Document2Communication(doc)
   }
+  
+  /*
+    Methods to convert Communications to Documents
+
+   */ 
+  private def ConFacTokenTagging(docWrapper:DocumentWrapper, tokTaggings: Iterable[TokenTagging], tagClass:String):Unit={
+  	tokTaggings.foreach(tokTagging=>{
+  		val theory = tokTagging.getMetadata().getTool()
+  		val documents = tagClass match{
+  			case "PosTag" => docWrapper.setTheory[PosTagTheory](new PosTagTheory(theory))
+  			case "NerTag" => docWrapper.setTheory[NerTagTheory](new NerTagTheory(theory))
+  			case "Lemma" => docWrapper.setTheory[LemmasTheory](new LemmasTheory(theory))
+  		}
+  		documents.foreach(document=>{
+  			val sentence = document.sentences.last
+  			tokTagging.getTaggedTokenList.asScala.foreach(tagTok=>{
+  				val tokId = tagTok.getTokenId
+  				val tokTag = tagTok.getTag()
+  				sentence.tokens.filter(token=>token.attr[TokenId].value==tokId)
+  					.foreach(token=>{tagClass match{
+  							case "PosTag" => token.attr+=new MyPosLabel(token, tokTag)//; println("Adding POS: "+token.string+"\t"+token.attr[MyPosLabel].value)}
+  							case "NerTag" => token.attr+=new MyNerLabel(token, tokTag)//; println("Adding NER: "+token.string+"\t"+token.attr[MyNerLabel].value)}
+  							case "Lemma" => token.attr+=new TokenLemma(token, tokTag)//; println("Adding LEMMAS: "+token.string+"\t"+token.attr[Lemmas].value)}
+  						}
+  					})
+  			})
+  		})
+  	})
+  }
+    
+  private def ConFacTokenization(docWrapper:DocumentWrapper, tokenizations: Iterable[Tokenization]):Unit={
+  	tokenizations.foreach(tokenization=>{
+  		docWrapper.setTheory[TokenizationTheory](new TokenizationTheory(tokenization.getMetadata().getTool())).foreach(document=>{
+  			val sentence = document.sentences.last
+  			tokenization.getTokenList.asScala.foreach(tok=>{
+  				val token = new Token(sentence, tok.getText())
+  				document.appendString(" ")
+  				token.attr+=new TokenId(tok.getTokenId)
+  			})
+  			ConFacTokenTagging(docWrapper, tokenization.getPosTagsList.asScala, "PosTag")
+  			ConFacTokenTagging(docWrapper, tokenization.getNerTagsList.asScala, "NerTag")
+  			ConFacTokenTagging(docWrapper, tokenization.getLemmasList.asScala, "Lemma")
+  			// DEPENDENCE PARSE see cc.factorie.app.nlp.parse.ParseLabel.scala
+  		})
+  	})
+  }
+    
+  private def ConFacSentenceSegmentation(docWrapper:DocumentWrapper, sentSegs:Iterable[SentenceSegmentation]):Unit={
+  	sentSegs.foreach(sentSeg=>{
+  		docWrapper.setTheory[SentenceSegmentationTheory](new SentenceSegmentationTheory(sentSeg.getMetadata().getTool())).foreach(document=>{
+  			sentSeg.getSentenceList.asScala.foreach(sent=>{
+  				new Sentence(document)
+  				ConFacTokenization(docWrapper, sent.getTokenizationList.asScala)
+  			})
+  		})
+  	})
+  }
+    
+  private def ConFacSectionSegmentation(docWrapper:DocumentWrapper, sss:Iterable[SectionSegmentation]):Unit={
+  	sss.foreach(ss=>{
+  		docWrapper.setTheory[SectionSegmentationTheory](new SectionSegmentationTheory(ss.getMetadata().getTool()))
+  		ss.getSectionList.asScala.foreach(sec=>ConFacSentenceSegmentation(docWrapper, sec.getSentenceSegmentationList.asScala))
+  	})
+  }
+  
+  private def Communication2DocumentWrapper(comm:Communication): DocumentWrapper ={
+  	val docWrapper = new DocumentWrapper(comm)
+  	ConFacSectionSegmentation(docWrapper, comm.getSectionSegmentationList.asScala)
+  	return docWrapper
+  } 
 
   implicit def Communication2MyCommunication(comm:Communication) = new MyCommunication(comm)
     
   class MyCommunication(comm:Communication) {
-    private val docWrapper = new DocumentWrapper(comm)
-    println("Got documentWrapper: "+docWrapper.size+" level")
   	def asDocument:Document = asDocument[StringVariable](new StringVariable("DEFAULT")).head
     def asDocument[T<:StringVariable](annoTheory:T):Seq[Document] = {
-  		if(annoTheory.value eq "DEFAULT") return Seq(new DocumentWrapper(comm).head)
+    	//val docWrapper = new DocumentWrapper(comm)
+    	val docWrapper = Communication2DocumentWrapper(comm)
+    	println("Got documentWrapper: "+docWrapper.size+" level")
+  		if(annoTheory.value eq "DEFAULT") return docWrapper.iterator.toSeq//Seq(new DocumentWrapper(comm).head)
   		else{
   			val classType = annoTheory.getClass()
   			return docWrapper.filter(doc => doc.attr.apply(classType).value==annoTheory.value).toSeq
