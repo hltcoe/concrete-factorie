@@ -58,9 +58,12 @@ object Concrete2Factorie {
 	}
 	
 	def main(args: Array[String]): Unit={
-		var testDat = System.getProperty("testDat")
-		if(testDat eq null) testDat="data/rf-concrete-dump.pb.gz"
-		val documents = getFactorieDocs(testDat)
+		if(args.length < 1)
+			log.severe("Please input a conceret protobuf file.")
+		else log.info("Reading concrete protobuf file from"+args(0));
+		//var testDat = args(0)
+		//if(testDat eq null) testDat="data/rf-concrete-dump.pb.gz"
+		val documents = getFactorieDocs(args(0))
 		log.info("Got documents: "+documents.size)
 	}
 }
