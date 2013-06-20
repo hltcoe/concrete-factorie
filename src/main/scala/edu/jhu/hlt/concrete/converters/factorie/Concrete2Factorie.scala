@@ -28,7 +28,12 @@ object Concrete2Factorie {
 		log.info("Reading protobuf file from: "+pathToComm)
 		val docs = new ArrayBuffer[Document]
 		
-		val reader = new BufferedInputStream(new GZIPInputStream(new FileInputStream(pathToComm)))
+		var reader:BufferedInputStream = null
+		if(pathToComm.toLowerCase().endsWith("gz"))
+			reader = new BufferedInputStream(new GZIPInputStream(new FileInputStream(pathToComm)))
+		else
+			reader = new BufferedInputStream(new FileInputStream(pathToComm))
+		
 		val kg = KnowledgeGraph.parseDelimitedFrom(reader)
 		log.info("Got knowledgeGraph:\n"+kg.toString())
 		val loop = new Breaks;
