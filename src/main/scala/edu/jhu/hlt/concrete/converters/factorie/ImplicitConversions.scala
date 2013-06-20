@@ -157,9 +157,9 @@ object ImplicitConversions {
   				val tokTag = tagTok.getTag()
   				sentence.tokens.filter(token=>token.attr[TokenId].value==tokId)
   					.foreach(token=>{tagClass match{
-  							case "PosTag" => token.attr+=new MyPosLabel(token, tokTag)//; println("Adding POS: "+token.string+"\t"+token.attr[MyPosLabel].value)}
-  							case "NerTag" => token.attr+=new MyNerLabel(token, tokTag)//; println("Adding NER: "+token.string+"\t"+token.attr[MyNerLabel].value)}
-  							case "Lemma" => token.attr+=new TokenLemma(token, tokTag)//; println("Adding LEMMAS: "+token.string+"\t"+token.attr[Lemmas].value)}
+  							case "PosTag" => token.attr+=new MyPosLabel(token, tokTag)
+  							case "NerTag" => token.attr+=new MyNerLabel(token, tokTag)
+  							case "Lemma" => token.attr+=new TokenLemma(token, tokTag)
   						}
   					})
   			})
@@ -213,7 +213,6 @@ object ImplicitConversions {
   class MyCommunication(comm:Communication) {
   	def asDocument:Document = asDocument[StringVariable](new StringVariable("DEFAULT")).head
     def asDocument[T<:StringVariable](annoTheory:T):Seq[Document] = {
-    	//val docWrapper = new DocumentWrapper(comm)
     	val docWrapper = Communication2DocumentWrapper(comm)
     	println("Got documentWrapper: "+docWrapper.size+" level")
   		if(annoTheory.value eq "DEFAULT") return docWrapper.iterator.toSeq//Seq(new DocumentWrapper(comm).head)
