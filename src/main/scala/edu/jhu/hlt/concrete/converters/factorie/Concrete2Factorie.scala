@@ -25,7 +25,7 @@ object Concrete2Factorie {
 	val log = Logger.getLogger(Concrete2Factorie.getClass().getName())
 	
 	def getFactorieDocs(pathToComm:String): ArrayBuffer[Document]={
-		log.info("Reading protobuf file from: "+pathToComm)
+		//log.info("Reading protobuf file from: "+pathToComm)
 		val docs = new ArrayBuffer[Document]
 		
 		var reader:BufferedInputStream = null
@@ -46,16 +46,6 @@ object Concrete2Factorie {
 				//val document = documentWrapper.head
 				val document = curComm.asDocument
 				docs.append(document)
-				log.info("Got document: "+document.name+
-						"\n SectionSegmentationTheory: "+document.attr[SectionSegmentationTheory].value+
-						"\n SentenceSegmentationTheory: "+document.attr[SentenceSegmentationTheory].value+
-						"\n TokenizationTheory: "+document.attr[TokenizationTheory].value+
-						"\n PosTagTheory: "+document.attr[PosTagTheory].value+
-						"\n Sentences: "+document.sentences.size+
-						"\n Tokens: "+document.tokens.size)
-				println(document.string)
-				document.sentences.foreach(sent=>println("Sentence: "+sent.string))
-				document.foreach(tok=>println(tok.string+"\t"+tok.attr[MyPosLabel].categoryValue+"\t"+tok.attr[MyNerLabel].categoryValue+"\t"+tok.lemma.value))
 			}while(true)
 		}
 		
@@ -70,5 +60,17 @@ object Concrete2Factorie {
 		//if(testDat eq null) testDat="data/rf-concrete-dump.pb.gz"
 		val documents = getFactorieDocs(args(0))
 		log.info("Got documents: "+documents.size)
+		for(document<-documents){
+			log.info("Got document: "+document.name+
+						"\n SectionSegmentationTheory: "+document.attr[SectionSegmentationTheory].value+
+						"\n SentenceSegmentationTheory: "+document.attr[SentenceSegmentationTheory].value+
+						"\n TokenizationTheory: "+document.attr[TokenizationTheory].value+
+						"\n PosTagTheory: "+document.attr[PosTagTheory].value+
+						"\n Sentences: "+document.sentences.size+
+						"\n Tokens: "+document.tokens.size)
+				println(document.string)
+				document.sentences.foreach(sent=>println("Sentence: "+sent.string))
+				document.foreach(tok=>println(tok.string+"\t"+tok.attr[MyPosLabel].categoryValue+"\t"+tok.attr[MyNerLabel].categoryValue+"\t"+tok.lemma.value))
+		}
 	}
 }

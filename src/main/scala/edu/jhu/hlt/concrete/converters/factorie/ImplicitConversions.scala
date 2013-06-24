@@ -214,7 +214,7 @@ object ImplicitConversions {
   	def asDocument:Document = asDocument[StringVariable](new StringVariable("DEFAULT")).head
     def asDocument[T<:StringVariable](annoTheory:T):Seq[Document] = {
     	val docWrapper = Communication2DocumentWrapper(comm)
-    	println("Got documentWrapper: "+docWrapper.size+" level")
+    	//println("Got documentWrapper: "+docWrapper.size+" level")
   		if(annoTheory.value eq "DEFAULT") return docWrapper.iterator.toSeq//Seq(new DocumentWrapper(comm).head)
   		else{
   			val classType = annoTheory.getClass()
