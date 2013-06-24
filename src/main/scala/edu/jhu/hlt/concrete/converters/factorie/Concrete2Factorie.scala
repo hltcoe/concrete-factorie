@@ -48,7 +48,7 @@ object Concrete2Factorie {
 				docs.append(document)
 			}while(true)
 		}
-		
+		reader.close()
         return docs
 	}
 	
