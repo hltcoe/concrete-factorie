@@ -15,6 +15,7 @@ import java.util.zip.GZIPInputStream
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.BufferedInputStream
+import com.google.protobuf.InvalidProtocolBufferException
 
 /**
  * @author tanx
@@ -38,15 +39,21 @@ object Concrete2Factorie {
 		//log.info("Got knowledgeGraph:\n"+kg.toString())
 		val loop = new Breaks;
 		loop.breakable{
-			do{
-				val curComm = Communication.parseDelimitedFrom(reader)
-				if(curComm eq null) loop.break
-				//log.info("Got communication:\n"+curComm.toString())
-				//val documentWrapper = curComm.asDocument[SectionSegmentationTheory](new SectionSegmentationTheory("Annotated Gigaword Pipeline"))
-				//val document = documentWrapper.head
-				val document = curComm.asDocument
-				docs.append(document)
-			}while(true)
+			try{
+				do{
+					val curComm = Communication.parseDelimitedFrom(reader)
+					if(curComm eq null) loop.break
+					//log.info("Got communication:\n"+curComm.toString())
+					//val documentWrapper = curComm.asDocument[SectionSegmentationTheory](new SectionSegmentationTheory("Annotated Gigaword Pipeline"))
+					//val document = documentWrapper.head
+					val document = curComm.asDocument
+					docs.append(document)
+				}while(true)
+			}catch{
+				case e:InvalidProtocolBufferException => {
+					println("Bad Protobuf File: "+pathToComm+"\n"+e)
+				}
+			}
 		}
 		reader.close()
         return docs
