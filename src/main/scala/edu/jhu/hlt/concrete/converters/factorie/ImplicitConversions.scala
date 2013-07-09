@@ -9,10 +9,11 @@ import edu.jhu.hlt.concrete.Concrete.TokenTagging.TaggedToken
 import cc.factorie.app.nlp.{Sentence, Document, Token}
 import scala.collection.JavaConverters._
 import cc.factorie.StringVariable
-import cc.factorie.app.nlp.lemma.TokenLemma
+import edu.jhu.hlt.concrete.converters.factorie.utils._
+import edu.jhu.hlt.concrete.converters.factorie.utils.Factorie2ConcreteFactorie._
 
 /**
- * @author John Sullivan, tanx
+ * @author John Sullivan, Tan Xu
  * This object contains implicit conversions between Concrete Communications
  * and FactorIE Documents.
  */
@@ -155,11 +156,11 @@ object ImplicitConversions {
   			tokTagging.getTaggedTokenList.asScala.foreach(tagTok=>{
   				val tokId = tagTok.getTokenId
   				val tokTag = tagTok.getTag()
-  				sentence.tokens.filter(token=>token.attr[TokenId].value==tokId)
+  				sentence.tokens.filter(token=>token.getId.value==tokId)
   					.foreach(token=>{tagClass match{
-  							case "PosTag" => token.attr+=new MyPosLabel(token, tokTag)
-  							case "NerTag" => token.attr+=new MyNerLabel(token, tokTag)
-  							case "Lemma" => token.attr+=new TokenLemma(token, tokTag)
+  							case "PosTag" => token.initPosLabel(tokTag)
+  							case "NerTag" => token.initNerLabel(tokTag)
+  							case "Lemma" => token.initTokenLemma(tokTag)
   						}
   					})
   			})
@@ -174,7 +175,7 @@ object ImplicitConversions {
   			tokenization.getTokenList.asScala.foreach(tok=>{
   				val token = new Token(sentence, tok.getText())
   				document.appendString(" ")
-  				token.attr+=new TokenId(tok.getTokenId)
+  				token.setId(tok.getTokenId)
   			})
   			ConFacTokenTagging(docWrapper, tokenization.getPosTagsList.asScala, "PosTag")
   			ConFacTokenTagging(docWrapper, tokenization.getNerTagsList.asScala, "NerTag")
@@ -218,7 +219,7 @@ object ImplicitConversions {
   		if(annoTheory.value eq "DEFAULT") return docWrapper.iterator.toSeq//Seq(new DocumentWrapper(comm).head)
   		else{
   			val classType = annoTheory.getClass()
-  			return docWrapper.filter(doc => doc.attr.apply(classType).value==annoTheory.value).toSeq
+  			return docWrapper.filter(doc => doc.getTheory(classType).value==annoTheory.value).toSeq
   		} 
   	}
     def enumerateTheories = null// todo implement me to return a structure of annotation theories present in the communication

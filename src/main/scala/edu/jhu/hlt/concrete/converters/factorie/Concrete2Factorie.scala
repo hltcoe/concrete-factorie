@@ -16,9 +16,11 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.BufferedInputStream
 import com.google.protobuf.InvalidProtocolBufferException
+import edu.jhu.hlt.concrete.converters.factorie.utils._
+import edu.jhu.hlt.concrete.converters.factorie.utils.Factorie2ConcreteFactorie._
 
 /**
- * @author tanx
+ * @author Tan Xu
  * 
  */
 object Concrete2Factorie {
@@ -69,15 +71,15 @@ object Concrete2Factorie {
 		log.info("Got documents: "+documents.size)
 		for(document<-documents){
 			log.info("Got document: "+document.name+
-						"\n SectionSegmentationTheory: "+document.attr[SectionSegmentationTheory].value+
-						"\n SentenceSegmentationTheory: "+document.attr[SentenceSegmentationTheory].value+
-						"\n TokenizationTheory: "+document.attr[TokenizationTheory].value+
-						"\n PosTagTheory: "+document.attr[PosTagTheory].value+
+						"\n SectionSegmentationTheory: "+document.sectionSegmentationTheory.value+
+						"\n SentenceSegmentationTheory: "+document.sentenceSegmentationTheory.value+
+						"\n TokenizationTheory: "+document.tokenizationTheory.value+
+						"\n PosTagTheory: "+document.posTagTheory.value+
 						"\n Sentences: "+document.sentences.size+
 						"\n Tokens: "+document.tokens.size)
 				println(document.string)
 				document.sentences.foreach(sent=>println("Sentence: "+sent.string))
-				document.foreach(tok=>println(tok.string+"\t"+tok.attr[MyPosLabel].categoryValue+"\t"+tok.attr[MyNerLabel].categoryValue+"\t"+tok.lemma.value))
+				document.foreach(tok=>println(tok.string+"\t"+tok.myPosLabel.categoryValue+"\t"+tok.myNerLabel.categoryValue+"\t"+tok.lemma.value))
 		}
 	}
 }
