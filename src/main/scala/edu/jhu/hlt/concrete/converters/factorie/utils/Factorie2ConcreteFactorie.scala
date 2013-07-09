@@ -61,6 +61,7 @@ object Factorie2ConcreteFactorie {
 		def myNerLabel = token.attr[MyNerLabel]
 		def copy(tok1:Token)={
 			// copy TOKEN attrs
+			token.setId(tok1.getId.value)
 			token.initPosLabel(tok1.myPosLabel.categoryValue)
 			token.initNerLabel(tok1.myNerLabel.categoryValue)
 			token.initTokenLemma(tok1.lemma.value)
