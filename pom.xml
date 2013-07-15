@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.jhu.hlt.concrete.converters.factorie</groupId>
   <artifactId>concrete_factorie</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <inceptionYear>2013</inceptionYear>
   <properties>
     <scala.version>2.9.2</scala.version>
