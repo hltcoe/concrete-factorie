@@ -1,59 +1,37 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.jhu.hlt.concrete.converters.factorie</groupId>
-  <artifactId>concrete_factorie</artifactId>
-  <version>0.2-SNAPSHOT</version>
-  <inceptionYear>2013</inceptionYear>
-  <properties>
-    <scala.version>2.9.2</scala.version>
-  </properties>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>edu.jhu.hlt.concrete.converters.factorie</groupId>
+	<artifactId>concrete_factorie</artifactId>
+	<version>0.2-SNAPSHOT</version>
+	<inceptionYear>2013</inceptionYear>
+	<properties>
+		<scala.version>2.10.1</scala.version>
+	</properties>
+	
+	<name>Concrete-Factorie Converter</name>
+	<description>Conversion between Concrete Communication and Factorie Document data type</description>
 
-  <parent>
-    <groupId>edu.jhu.parent</groupId>
-    <artifactId>parent</artifactId>
-    <version>1.0.0</version>
-  </parent>
+	<parent>
+		<groupId>edu.jhu.parent</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
 
+	<developers>
+		<developer>
+			<email>tanx@umd.edu</email>
+			<name>Tan Xu</name>
+			<id>txu</id>
+		</developer>
+		<developer>
+			<email>john.t.sullivan@gmail.com</email>
+			<name>John Sullivan</name>
+			<id>johntsullivan</id>
+		</developer>
+	</developers>
 
-  <repositories>
-    <repository>
-      <id>scala-tools.org</id>
-      <name>Scala-Tools Maven2 Repository</name>
-      <url>http://scala-tools.org/repo-releases</url>
-    </repository>
-    <repository>
-      <id>ieslnexus</id>
-      <name>IESL Nexus repostory</name>
-      <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/releases</url>
-    </repository>
-    <repository>
-      <id>ieslnexus-snapshots</id>
-      <name>IESL Nexus repostory</name>
-      <url>https://dev-iesl.cs.umass.edu/nexus/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>scala-tools.org</id>
-      <name>Scala-Tools Maven2 Repository</name>
-      <url>http://scala-tools.org/repo-releases</url>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
+	<dependencies>
       <dependency>
           <groupId>edu.jhu.hlt.concrete</groupId>
           <artifactId>concrete-protobufs</artifactId>
@@ -189,6 +167,4 @@
       </plugin>
     </plugins>
   </reporting>
-  <name>Concrete-Factorie Converter</name>
-  <description>Convert between concrete communication and factorie document</description>
 </project>
