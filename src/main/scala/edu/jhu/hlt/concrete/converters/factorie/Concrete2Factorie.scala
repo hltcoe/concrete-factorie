@@ -37,8 +37,8 @@ object Concrete2Factorie {
 		else
 			reader = new BufferedInputStream(new FileInputStream(pathToComm))
 		
-		//val kg = KnowledgeGraph.parseDelimitedFrom(reader)
-		//log.info("Got knowledgeGraph:\n"+kg.toString())
+		val kg = KnowledgeGraph.parseDelimitedFrom(reader)
+		log.info("Got knowledgeGraph:\n"+kg.toString())
 		val loop = new Breaks;
 		loop.breakable{
 			try{
@@ -75,10 +75,11 @@ object Concrete2Factorie {
 						"\n SentenceSegmentationTheory: "+document.sentenceSegmentationTheory.value+
 						"\n TokenizationTheory: "+document.tokenizationTheory.value+
 						"\n PosTagTheory: "+document.posTagTheory.value+
+						"\n DependencyParseTheory: "+document.dependencyParseTheory.value+
 						"\n Sentences: "+document.sentences.size+
 						"\n Tokens: "+document.tokens.size)
 				println(document.string)
-				document.sentences.foreach(sent=>println("Sentence: "+sent.string))
+				document.sentences.foreach(sent=>println("Sentence: "+sent.string+"\n"+sent.parse))
 				document.foreach(tok=>println(tok.string+"\t"+tok.myPosLabel.categoryValue+"\t"+tok.myNerLabel.categoryValue+"\t"+tok.lemma.value))
 		}
 	}

@@ -11,6 +11,7 @@ import scala.collection.JavaConverters._
 import cc.factorie.StringVariable
 import edu.jhu.hlt.concrete.converters.factorie.utils._
 import edu.jhu.hlt.concrete.converters.factorie.utils.Factorie2ConcreteFactorie._
+import cc.factorie.app.nlp.parse.ParseTree
 
 /**
  * @author John Sullivan, Tan Xu
@@ -156,20 +157,58 @@ object ImplicitConversions {
   			tokTagging.getTaggedTokenList.asScala.foreach(tagTok=>{
   				val tokId = tagTok.getTokenId
   				val tokTag = tagTok.getTag()
-  				sentence.tokens.filter(token=>token.getId.value==tokId)
-  					.foreach(token=>{tagClass match{
-  							case "PosTag" => token.initPosLabel(tokTag)
-  							case "NerTag" => token.initNerLabel(tokTag)
-  							case "Lemma" => token.initTokenLemma(tokTag)
-  						}
-  					})
+  				val token = sentence.tokens.filter(token=>token.getId.value==tokId).head
+  				// a cleaned version: maybe not precise
+  				//val token = sentence.tokens(tokId)
+  				// TODO: remove all token.getId setId, instead using token.positionInSentence and sentence.tokens(idx)
+  				tagClass match{
+  					case "PosTag" => token.initPosLabel(tokTag)
+  					case "NerTag" => token.initNerLabel(tokTag)
+  					case "Lemma" => token.initTokenLemma(tokTag)
+  				}
   			})
   		})
   	})
   }
+  
+  private def ConFacDependencyParse(docWrapper:DocumentWrapper, dependencyParseList:Iterable[DependencyParse]): Unit={
+  	val dependencyParse = dependencyParseList.head
+  	//TODO: settheory not working as expected when encounting new theory for the same process
+  	// Reason suspect: document copy
+  	//dependencyParseList.foreach(dependencyParse=>{
+  		docWrapper.setTheory[DependencyParseTheory](new DependencyParseTheory(dependencyParse.getMetadata().getTool())).foreach(document=>{
+  			val sentence = document.sentences.last
+  			sentence.attr += new ParseTree(sentence)
+  			dependencyParse.getDependencyList().asScala.foreach(dependency=>{
+  				val childTokId = dependency.getDep().getTokenId()
+  				val labelValue = dependency.getEdgeType()
+  				val child = sentence.tokens.filter(token=>token.getId.value==childTokId)(0)
+  				if(dependency.hasGov()){
+  					val parentTokId = dependency.getGov().getTokenId()
+  					val parent = sentence.tokens.filter(token=>token.getId.value==parentTokId)(0)
+  					sentence.parse.setParent(child, parent)
+  					labelValue match{
+  						// TODO: factorie dependency parse label domain cannot cover all stanford NLP defined label domains
+  						// finding the mapping or expand factorie's label domain
+  						case "tmod" | "cop" | "mwe" | "abbrev" | "rel" => 
+  						case "prep_in" | "prep_of" => sentence.parse.label(childTokId).setCategory("prep")(null)
+  						case _ => sentence.parse.label(childTokId).setCategory(labelValue)(null)
+  					}
+  				}else{
+  					println(sentence.string)
+  					sentence.parse.setRootChild(child)
+  				} 
+  			})
+  		})
+  	//})
+  }
     
-  private def ConFacTokenization(docWrapper:DocumentWrapper, tokenizations: Iterable[Tokenization]):Unit={
+  private def ConFacTokenization(docWrapper:DocumentWrapper, tokenizations: Iterable[Tokenization], commSentence: edu.jhu.hlt.concrete.Concrete.Sentence):Unit={
   	tokenizations.foreach(tokenization=>{
+  		val tokenizationUUID = tokenization.getUuid()
+  		val dependencyParseList = commSentence.getDependencyParseList().asScala
+  			//TODO: filtering dependencyParse that matches tokenizations, currently worked because only have one tokenization theory 
+  			//.filter(dependencyParse => dependencyParse.getDependency(0).getDep().getTokenization().equals(tokenizationUUID))
   		docWrapper.setTheory[TokenizationTheory](new TokenizationTheory(tokenization.getMetadata().getTool())).foreach(document=>{
   			val sentence = document.sentences.last
   			tokenization.getTokenList.asScala.foreach(tok=>{
@@ -180,7 +219,7 @@ object ImplicitConversions {
   			ConFacTokenTagging(docWrapper, tokenization.getPosTagsList.asScala, "PosTag")
   			ConFacTokenTagging(docWrapper, tokenization.getNerTagsList.asScala, "NerTag")
   			ConFacTokenTagging(docWrapper, tokenization.getLemmasList.asScala, "Lemma")
-  			// DEPENDENCE PARSE see cc.factorie.app.nlp.parse.ParseLabel.scala
+  			ConFacDependencyParse(docWrapper, dependencyParseList)
   		})
   	})
   }
@@ -190,7 +229,7 @@ object ImplicitConversions {
   		docWrapper.setTheory[SentenceSegmentationTheory](new SentenceSegmentationTheory(sentSeg.getMetadata().getTool())).foreach(document=>{
   			sentSeg.getSentenceList.asScala.foreach(sent=>{
   				new Sentence(document)
-  				ConFacTokenization(docWrapper, sent.getTokenizationList.asScala)
+  				ConFacTokenization(docWrapper, sent.getTokenizationList.asScala, sent)
   			})
   		})
   	})

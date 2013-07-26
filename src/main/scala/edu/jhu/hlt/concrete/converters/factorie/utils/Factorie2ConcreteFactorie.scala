@@ -5,6 +5,7 @@ import cc.factorie.app.nlp.Sentence
 import cc.factorie.app.nlp.Token
 import cc.factorie._
 import cc.factorie.app.nlp.lemma.TokenLemma
+import cc.factorie.app.nlp.parse.ParseTree
 
 /*
  * @author Tan Xu
@@ -25,6 +26,7 @@ object Factorie2ConcreteFactorie {
 			doc.attr+=new PosTagTheory
 			doc.attr+=new NerTagTheory
 			doc.attr+=new LemmasTheory
+			doc.attr+=new DependencyParseTheory
 		}
 		def sectionSegmentationTheory = doc.attr[SectionSegmentationTheory]
 		def sentenceSegmentationTheory = doc.attr[SentenceSegmentationTheory]
@@ -32,6 +34,7 @@ object Factorie2ConcreteFactorie {
 		def posTagTheory = doc.attr[PosTagTheory]
 		def nerTagTheory = doc.attr[NerTagTheory]
 		def lemmasTheory = doc.attr[LemmasTheory]
+		def dependencyParseTheory = doc.attr[DependencyParseTheory]
 		def getTheory[C<:AnyRef](theory:java.lang.Class[C]) = doc.attr.apply(theory)
 		def copy[T<:StringVariable](doc1:Document, theory:T)={
 			// copy doc1 to doc2
@@ -41,12 +44,16 @@ object Factorie2ConcreteFactorie {
 			doc.posTagTheory.set(doc1.posTagTheory.value)(null)
 			doc.nerTagTheory.set(doc1.nerTagTheory.value)(null)
 			doc.lemmasTheory.set(doc1.lemmasTheory.value)(null)
-			doc1.sentences.foreach(sent=>{new Sentence(doc, sent.start, sent.length)})
+			doc.dependencyParseTheory.set(doc1.dependencyParseTheory.value)(null)
 			theory match{ 
 				case x:PosTagTheory => 
 				case _ => doc1.foreach(
-						tok1=>{val tok2 = new Token(doc, tok1.string); tok2.copy(tok1)})
+						tok1=>{val tok2 = new Token(doc, tok1.string); tok2.copy(tok1); doc.appendString(" ")})
 			}
+			doc1.sentences.foreach(sent1=>{
+				val sent = new Sentence(doc, sent1.start, sent1.length)
+				sent.attr += new ParseTree(sent, sent1.parse.targetParents, sent1.parse.labels.map(_.targetCategory))
+			})
 		}
 	}
 	
@@ -83,3 +90,4 @@ class TokenizationTheory(theory:String="") extends StringVariable(theory)
 class PosTagTheory(theory:String="") extends StringVariable(theory)
 class NerTagTheory(theory:String="") extends StringVariable(theory)
 class LemmasTheory(theory:String="") extends StringVariable(theory)
+class DependencyParseTheory(theory:String="") extends StringVariable(theory)
