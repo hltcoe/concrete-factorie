@@ -190,7 +190,7 @@ object ImplicitConversions {
   					labelValue match{
   						// TODO: factorie dependency parse label domain cannot cover all stanford NLP defined label domains
   						// finding the mapping or expand factorie's label domain
-  						case "tmod" | "cop" | "mwe" | "abbrev" | "rel" => 
+  						case "tmod" | "cop" | "mwe" | "abbrev" | "rel" | "purpcl" => 
   						case "prep_in" | "prep_of" => sentence.parse.label(childTokId).setCategory("prep")(null)
   						case _ => sentence.parse.label(childTokId).setCategory(labelValue)(null)
   					}
