@@ -37,8 +37,8 @@ object Concrete2Factorie {
 		else
 			reader = new BufferedInputStream(new FileInputStream(pathToComm))
 		
-		val kg = KnowledgeGraph.parseDelimitedFrom(reader)
-		log.info("Got knowledgeGraph:\n"+kg.toString())
+		//val kg = KnowledgeGraph.parseDelimitedFrom(reader)
+		//log.info("Got knowledgeGraph:\n"+kg.toString())
 		val loop = new Breaks;
 		loop.breakable{
 			try{
