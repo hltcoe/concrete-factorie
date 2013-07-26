@@ -194,10 +194,7 @@ object ImplicitConversions {
   						case "prep_in" | "prep_of" => sentence.parse.label(childTokId).setCategory("prep")(null)
   						case _ => sentence.parse.label(childTokId).setCategory(labelValue)(null)
   					}
-  				}else{
-  					println(sentence.string)
-  					sentence.parse.setRootChild(child)
-  				} 
+  				}else sentence.parse.setRootChild(child)
   			})
   		})
   	//})
